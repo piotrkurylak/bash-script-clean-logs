@@ -7,17 +7,19 @@
 set -eu
 
 ## Variables
-log_dir="$1"
-lock_file_name="$0"
+logs_extension="*.log"
+logs_dir="${1}"
+script_name="${0}"
 lock_suffix="lock"
-lock_file="/tmp/${lock_file_name}_${lock_suffix}"
+lock_file_path="/var/lock/"
+lock_file="${lock_file_path}${script_name}_${lock_suffix}"
 
 ## Find files older than 3 days.
-files=(find . -name "*.log" -type f -mtime +3)
+files=(find . -name "${logs_extension}" -type f -mtime +3)
 
 ## Function for deleting lock file.
 function delete_lock_file() {
-    if [[ -e "$lock_file" ]]; then
+    if [[ -e "${lock_file}" ]]; then
         rm -f "${lock_file}" || {
             printf "Cannot delete lock file\n" >&2
             exit 4
@@ -46,7 +48,7 @@ trap delete_lock_file SIGINT SIGTERM
 create_lock_file
 
 ## Go to logs directory.
-cd "${log_dir}" || {
+cd "${logs_dir}" || {
     delete_lock_file
     printf "Cannot enter logs directory.\n" >&2
     exit 3
@@ -72,4 +74,4 @@ printf "Exit code: %d\n" "${?}"
 
 ## TODO
 ## Use flock for creating lock file.
-## Change directory of lock file.
+## Maybe local variables?
